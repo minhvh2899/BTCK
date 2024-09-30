@@ -1,4 +1,3 @@
-// internal/config/config.go
 package config
 
 import (
@@ -22,13 +21,13 @@ func Load() (*Config, error) {
 
     config := &Config{
         DatabaseURL:   os.Getenv("DATABASE_URL"),
-        ServerAddress: os.Getenv("SERVER_ADDRESS"),
+        ServerAddress: os.Getenv("PRODUCT_SERVER_ADDRESS"),
         LogLevel:      os.Getenv("LOG_LEVEL"),
     }
 
     // Set default values if not provided
     if config.DatabaseURL == "" {
-        config.DatabaseURL = "sqlite://products.db"
+        config.DatabaseURL = "sqlite://manage-products.db"
     }
     if config.ServerAddress == "" {
         config.ServerAddress = ":8080"

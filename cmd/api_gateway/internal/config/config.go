@@ -30,6 +30,9 @@ func Load() (*Config, error) {
 	if config.AuthServiceAddress == "" {
 		config.AuthServiceAddress = "localhost:5000"
 	}
+	if config.ProductServiceAddress == "" {
+		config.ProductServiceAddress = "localhost:5001"
+	}
 
 	return config, nil
 }

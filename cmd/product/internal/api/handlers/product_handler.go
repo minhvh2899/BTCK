@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"my-project/cmd/product/internal/api/proto"
 	"my-project/cmd/product/internal/models"
 	"my-project/cmd/product/internal/service"
 )
@@ -24,7 +25,11 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
-    product, err := h.service.CreateProduct(input.Title, input.Desc)
+	product, err := h.service.CreateProduct(    c.Request.Context(), &proto.CreateProductRequest{
+		Name:        input.Name,
+		Description: input.Description,
+		Price:       input.Price,
+    })
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
@@ -34,7 +39,9 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 
 func (h *ProductHandler) GetProduct(c *gin.Context) {
     id, _ := strconv.Atoi(c.Param("id"))
-    product, err := h.service.GetProductByID(uint(id))
+    product, err := h.service.GetProduct(c.Request.Context(), &proto.GetProductRequest{
+        Id: strconv.Itoa(id),
+    })
     if err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
         return
@@ -43,16 +50,22 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 }
 
 func (h *ProductHandler) UpdateProduct(c *gin.Context) {
-    id, _ := strconv.Atoi(c.Param("id"))
-    var input struct {
-        Title string `json:"title" binding:"required"`
-        Desc  string `json:"desc"`
+	id, _ := strconv.Atoi(c.Param("id"))
+	var input struct {
+		Name string `json:"name"`
+		Desc  string `json:"desc"`
+		Price float64 `json:"price"`
     }
     if err := c.BindJSON(&input); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
-    product, err := h.service.UpdateProduct(uint(id), input.Title, input.Desc)
+    product, err := h.service.UpdateProduct(c.Request.Context(), &proto.UpdateProductRequest{
+        Id: strconv.Itoa(id),
+        Name: input.Name,
+        Description: input.Desc,
+        Price: input.Price,
+    })
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
@@ -61,19 +74,22 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 }
 
 func (h *ProductHandler) DeleteProduct(c *gin.Context) {
-    id, _ := strconv.Atoi(c.Param("id"))
-    if err := h.service.DeleteProduct(uint(id)); err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
-        return
+	id, _ := strconv.Atoi(c.Param("id"))
+	_, err := h.service.DeleteProduct(c.Request.Context(), &proto.DeleteProductRequest{
+		Id: strconv.Itoa(id),
+	})
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		return
     }
     c.JSON(http.StatusNoContent, nil)
 }
 
 func (h *ProductHandler) ListProducts(c *gin.Context) {
-    products, err := h.service.ListProducts()
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-    c.JSON(http.StatusOK, products)
+	products, err := h.service.ListProducts(c.Request.Context(), &proto.ListProductsRequest{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, products)
 }

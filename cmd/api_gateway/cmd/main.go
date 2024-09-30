@@ -43,12 +43,16 @@ func main() {
 
 	productService := service.NewProductService(productConn)
 	productHandler := handlers.NewProductHandler(productService)
+    
+	productRouter := router.Group("/products", authMiddleware)
+	{
+		productRouter.POST("", productHandler.CreateProduct)
+		productRouter.GET("/:id", productHandler.GetProduct)
+		productRouter.GET("", productHandler.ListProducts)
+		productRouter.PUT("/:id", productHandler.UpdateProduct)
+		productRouter.DELETE("/:id", productHandler.DeleteProduct)
+	}
 
-	router.POST("/products", productHandler.CreateProduct)
-	router.GET("/products/:id", productHandler.GetProduct)
-	router.GET("/products", productHandler.ListProducts)
-	router.PUT("/products/:id", productHandler.UpdateProduct)
-	router.DELETE("/products/:id", productHandler.DeleteProduct)
 	log.Printf("Starting API Gateway on %s", cfg.ServerAddress)
 	if err := router.Run(cfg.ServerAddress); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
